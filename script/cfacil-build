@@ -1,0 +1,42 @@
+#!/bin/bash
+
+TMPFILE=`mktemp`
+TMPDIR=`mktemp -d /tmp/Cfacil.XXXXXXXXXX`
+ORIGFILE="$1"
+
+CFACILINCLUDEPREPEND=/home/jd/local/lib/cfacil/cfacil.h
+CFACILMAKEFILE=/home/jd/local/lib/cfacil/Makefile.template
+
+if [ ! -f "${ORIGFILE}" ]
+then
+    exit 1
+fi
+
+cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/cfacil.h"
+cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/source.cpp"
+cat "${ORIGFILE}" >> "${TMPDIR}/source.cpp"
+cat "${CFACILMAKEFILE}" > "${TMPDIR}/Makefile"
+
+(
+    cd "${TMPDIR}"
+    LANG=C make vimtest 2>&1 
+) | tee "${TMPFILE}"
+
+rm -r "${TMPDIR}"
+
+HEADERROR=`grep '\:[0-9]*\:' < "${TMPFILE}" | head -1`
+
+if [ "$HEADERROR" ]
+then
+    LINENUM=`echo "${HEADERROR}" | cut -d: -f2`
+    SHORTERROR=`echo "${HEADERROR}" | cut -d: -f3-`
+    printf "%-4000spureMGIK" "gotoMGIK${LINENUM}:${SHORTERROR}MGIKend_"  >> "${ORIGFILE}"
+else
+    printf "%-4000spureMGIK" "gotoMGIK0:no errorMGIKend_" >> "${ORIGFILE}"
+fi
+
+echo
+echo "press return to continue ..."
+read END
+exit 1
+

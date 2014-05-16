@@ -1,0 +1,8 @@
+
+vimtest: executable
+	./executable
+
+executable: source.cpp
+	g++ -Wall `pkg-config --cflags --libs sdl` `pkg-config --cflags --libs gl` -o executable source.cpp -lm
+
+
