@@ -1,6 +1,6 @@
 #include "cfacil.h"
 
-int main (void) {
+int main (int nb, char ** cmde) {
     cout << "on demarre ..." << endl;
 
     int W = 320;
@@ -8,15 +8,22 @@ int main (void) {
 
     initscreen (W, H);
 
-    for (int i=0 ; i<30000 ; i++) {
+    settle_timer ();
 
-	clear();
-//        for (int x=0 ; x<W ; x++) {
-//            for (int y=0 ; y<H ; y++) {
-//
-//                putpixel (x, y,  255.0*((x+i)/(double)W),  255.0*((y+i*2)/(double)H),  255.0*((x-i)/(double)W)  );
-//           }
-//        }
+    for (int i=0 ; i<3000 ; i++) {
+
+	if (false) {
+	    clear();
+	} else {
+	    stoprefresh();
+	    for (int x=0 ; x<W ; x++) {
+		for (int y=0 ; y<H ; y++) {
+
+		    putpixel (x, y,  255.0*((x+i)/(double)W),  255.0*((y+i*2)/(double)H),  255.0*((x-i)/(double)W)  );
+	       }
+	    }
+	    startrefresh();
+	}
 
 	for (int t=0 ; t<20 ; t++) {
 	    setcurcolor (0,0,t*10+50);
@@ -32,16 +39,17 @@ int main (void) {
 	    line (Random(W), Random(H), Random(W), Random(H));
 	}
 
-        if (checkelapsedtime(40)) {
-            uploadtexture ();
-            renderflatty ();
-        }
+//        if (checkelapsedtime(40)) {
+//            uploadtexture ();
+//            renderflatty ();
+//        }
 
     }
 
     cerr << "on va finir" << endl;
 
-    SDL_Quit ();
-
     return 0;
 }
+
+
+
