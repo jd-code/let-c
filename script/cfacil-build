@@ -5,6 +5,7 @@ TMPDIR=`mktemp -d /tmp/Cfacil.XXXXXXXXXX`
 ORIGFILE="$1"
 
 CFACILINCLUDEPREPEND=/home/jd/local/lib/cfacil/cfacil.h
+CFACILSOURCE=/home/jd/local/lib/cfacil/cfacil.cpp
 CFACILMAKEFILE=/home/jd/local/lib/cfacil/Makefile.template
 
 if [ ! -f "${ORIGFILE}" ]
@@ -13,6 +14,7 @@ then
 fi
 
 cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/cfacil.h"
+cat "${CFACILSOURCE}" > "${TMPDIR}/cfacil.cpp"
 cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/source.cpp"
 cat "${ORIGFILE}" >> "${TMPDIR}/source.cpp"
 cat "${CFACILMAKEFILE}" > "${TMPDIR}/Makefile"

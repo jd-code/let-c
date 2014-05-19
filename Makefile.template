@@ -2,7 +2,16 @@
 vimtest: executable
 	./executable
 
-executable: source.cpp
-	g++ -Wall `pkg-config --cflags --libs sdl` `pkg-config --cflags --libs gl` -o executable source.cpp -lm
+executable: source.o cfacil.o
+	g++ `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lm -Wl,--wrap,main cfacil.o source.o 
 
+source.o: source.cpp
+	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c source.cpp
+
+cfacil.o: cfacil.h cfacil.cpp
+	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c cfacil.cpp
+
+clean:
+	rm -f cfacil.o  source.o
+	rm -r ./executable
 

@@ -115,6 +115,8 @@ cerr << window_w << "x" << window_h << endl;
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, texturew, textureh, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawscreen);
 
+	settle_timer ();
+
 	return 0;
     }
 
@@ -235,6 +237,7 @@ bool escapeout = true;	// does "escape"-key toggles quit
 		case SDL_QUIT:
 		    stoptimer ();
 		    SDL_Quit ();
+cerr << "Ended via closing window" << endl;
 		    exit(0);
 		case SDL_KEYDOWN:
 // cerr << "keysym = " << event.key.keysym.sym << endl;
@@ -242,6 +245,7 @@ bool escapeout = true;	// does "escape"-key toggles quit
 		    if (escapeout && (keysym == SDLK_ESCAPE)) {
 			stoptimer ();
 			SDL_Quit ();
+cerr << "Ended via Escape keystroke" << endl;
 			exit(0);
 		    }
 		    map<SDLKey, int>::iterator mi = keypressed.find(keysym);
@@ -443,7 +447,11 @@ using namespace easycpp;
 extern "C" int __real_main (int nb, char ** cmde);
 
 extern "C" int __wrap_main (int nb, char ** cmde) {
+
+
+cerr << "Start !" << endl;
     int r = __real_main (nb, cmde);
+cerr << "End !" << endl;
 
     stoptimer ();
     SDL_Quit ();
