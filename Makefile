@@ -13,4 +13,4 @@ cfacil.o: cfacil.h cfacil.cpp
 
 clean:
 	rm -f cfacil.o  simplepixels.o
-	rm -r ./executable
+	rm -f ./executable

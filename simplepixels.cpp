@@ -8,7 +8,6 @@ int main (int nb, char ** cmde) {
 
     initscreen (W, H);
 
-    settle_timer ();
 
     for (int i=0 ; i<3000 ; i++) {
 
