@@ -4,9 +4,14 @@
 #define CFACIL_STATICINSTANCE
 #include "cfacil.h"
 
+#include <pthread.h>
+//#include "SDL_thread.h"
+
 using namespace std;
 
 namespace easycpp {
+
+
 
     bool checkelapsedtime (uint32_t ceil) {
 static timespec lastcall;
@@ -21,7 +26,6 @@ static timespec lastcall;
 	}
 	return false;
     }
-
 
 //    Vector4 GLRGBA_BLACK       (0.0, 0.0, 0.0, 1.0);
 //    Vector4 GLRGBA_TRANSPBLACK (0.0, 0.0, 0.0, 0.0);
@@ -56,7 +60,32 @@ static timespec lastcall;
 	 int	 texturew = -1,
 		 textureh = -1;
 
-	Uint32	currentwpixel = 0xffffffff;
+    Uint32  currentwpixel = 0xffffffff;
+
+    bool      autorefresh = true;
+    pthread_mutex_t GLmutex = PTHREAD_MUTEX_INITIALIZER;
+
+#define CLOCKID CLOCK_REALTIME
+#define SIG SIGRTMIN
+
+    timer_t timerid;
+
+    int stoptimer (void) {
+	int r = 0;
+	sigset_t mask;
+	/* Block timer signal temporarily */
+	sigemptyset(&mask);
+	sigaddset(&mask, SIG);
+	if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1) {
+	    int e = errno;
+	    cerr << "settle_timer, error at sigprocmask : " << strerror(e) << endl;
+	    r = -1;
+	}
+
+	timer_delete (timerid);
+	return r;
+    }
+
 
     int initscreen (int w, int h) {
 	rawscreen = (uint8_t *) malloc (4*w*h);
@@ -87,7 +116,6 @@ static timespec lastcall;
 	    if (screen_ratio > render_ratio) {
 		window_h = initial_h-32;
 		window_w = window_h * render_ratio;
-cerr << window_w << "x" << window_h << endl;
 	    } else {
 		window_w = initial_w-32;
 		window_h = window_w / render_ratio;
@@ -115,9 +143,25 @@ cerr << window_w << "x" << window_h << endl;
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, texturew, textureh, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawscreen);
 
+//	GLmutex = SDL_CreateMutex();
+
 	settle_timer ();
 
 	return 0;
+    }
+
+    void leavescreen (void) {
+	if (screen == NULL) return;
+	stoptimer ();
+	time_t t = time (NULL);
+	while (time(NULL) - t < 2) {
+	    if (pthread_mutex_trylock (&GLmutex) != 0) {
+		break;
+	    }
+	}
+	pthread_mutex_destroy (&GLmutex);
+	SDL_Quit ();
+	screen = NULL;
     }
 
     void uploadtexture (void) {
@@ -204,30 +248,10 @@ glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	SDL_GL_SwapBuffers();
     }
 
-#define CLOCKID CLOCK_REALTIME
-#define SIG SIGRTMIN
 
-    timer_t timerid;
-
-    int stoptimer (void) {
-	int r = 0;
-	sigset_t mask;
-	/* Block timer signal temporarily */
-	sigemptyset(&mask);
-	sigaddset(&mask, SIG);
-	if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1) {
-	    int e = errno;
-	    cerr << "settle_timer, error at sigprocmask : " << strerror(e) << endl;
-	    r = -1;
-	}
-
-	timer_delete (timerid);
-	return r;
-    }
-
-map<SDLKey, int> keypressed;
-int nbkeypressed = 0;
-bool escapeout = true;	// does "escape"-key toggles quit
+    map<SDLKey, int> keypressed;
+    int nbkeypressed = 0;
+    bool escapeout = true;	// does "escape"-key toggles quit
 
     static void timerhandler (int sig, siginfo_t *si, void *uc) {
 
@@ -235,16 +259,14 @@ bool escapeout = true;	// does "escape"-key toggles quit
 	while (SDL_PollEvent (&event)) {
 	    switch (event.type) {
 		case SDL_QUIT:
-		    stoptimer ();
-		    SDL_Quit ();
+		    leavescreen ();
 cerr << "Ended via closing window" << endl;
 		    exit(0);
 		case SDL_KEYDOWN:
 // cerr << "keysym = " << event.key.keysym.sym << endl;
 		    SDLKey keysym = event.key.keysym.sym;
 		    if (escapeout && (keysym == SDLK_ESCAPE)) {
-			stoptimer ();
-			SDL_Quit ();
+			leavescreen ();
 cerr << "Ended via Escape keystroke" << endl;
 			exit(0);
 		    }
@@ -257,21 +279,23 @@ cerr << "Ended via Escape keystroke" << endl;
 	    }
 	}
 
-//	uploadtexture ();
-//	renderflatty ();
-//	signal(sig, SIG_IGN);	// JDJDJDJD sigaction instead ?
+	if (!autorefresh) return;
+	if (pthread_mutex_trylock (&GLmutex) != 0) return;
+	    if (checkelapsedtime (33)) {
+		uploadtexture ();
+		renderflatty ();
+	    }
+	pthread_mutex_unlock (&GLmutex);
     }
-
-
-
-    bool autorefresh = true;
 
     void inline autoupdatetexture () {
 	if (!autorefresh) return;
-	if (checkelapsedtime (33)) {
-	    uploadtexture ();
-	    renderflatty ();
-	}
+	if (pthread_mutex_trylock (&GLmutex) != 0) return;
+	    if (checkelapsedtime (33)) {
+		uploadtexture ();
+		renderflatty ();
+	    }
+	pthread_mutex_unlock (&GLmutex);
     }
 
     void startrefresh (void) {
@@ -453,8 +477,7 @@ cerr << "Start !" << endl;
     int r = __real_main (nb, cmde);
 cerr << "End !" << endl;
 
-    stoptimer ();
-    SDL_Quit ();
+    leavescreen ();
 
     return r;
 }
