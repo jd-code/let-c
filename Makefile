@@ -2,15 +2,15 @@
 vimtest: executable
 	./executable
 
-executable: cfacil.o simplepixels.o
-	g++ `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lm -Wl,--wrap,main cfacil.o simplepixels.o 
+executable: let-c.o simplepixels.o
+	g++  let-c.o simplepixels.o `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lpthread -lm -lrt -Wl,--wrap,main 
 
-simplepixels.o: cfacil.h simplepixels.cpp
+simplepixels.o: let-c.h simplepixels.cpp
 	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c simplepixels.cpp 
 
-cfacil.o: cfacil.h cfacil.cpp
-	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c cfacil.cpp
+let-c.o: let-c.h let-c.cpp
+	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c let-c.cpp
 
 clean:
-	rm -f cfacil.o  simplepixels.o
+	rm -f let-c.o  simplepixels.o
 	rm -f ./executable

@@ -1,4 +1,4 @@
-#include "cfacil.h"
+#include "let-c.h"  // this inclusion isn't needed to state when using let-c build scheme
 
 int main (int nb, char ** cmde) {
     cout << "on demarre ..." << endl;
@@ -37,11 +37,6 @@ int main (int nb, char ** cmde) {
 	    setcurcolor (Random(255), Random(255), Random(255));
 	    line (Random(W), Random(H), Random(W), Random(H));
 	}
-
-//        if (checkelapsedtime(40)) {
-//            uploadtexture ();
-//            renderflatty ();
-//        }
 
     }
 
