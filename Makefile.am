@@ -33,3 +33,6 @@ let-c.o: let-c.h let-c.cpp
 clean-local:
 	rm -f let-c.o  simplepixels.o
 	rm -f ./executable
+	rm -f m4/*.m4
+	rm -f stamp-h2
+
