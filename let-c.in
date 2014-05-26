@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# a shortcut for launching nano editor ready to trigger some easy "let-c-build" !
+
+exec @NANO_EDITOR_BIN@ -B -E -T4 -i --speller=@LETCBINDIR@/let-c-build "${@}"
+

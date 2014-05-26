@@ -1,20 +1,20 @@
 #!/bin/bash
 
 TMPFILE=`mktemp`
-TMPDIR=`mktemp -d /tmp/Cfacil.XXXXXXXXXX`
+TMPDIR=`mktemp -d /tmp/LetC.XXXXXXXXXX`
 ORIGFILE="$1"
 
-CFACILINCLUDEPREPEND=/home/jd/local/lib/cfacil/cfacil.h
-CFACILSOURCE=/home/jd/local/lib/cfacil/cfacil.cpp
-CFACILMAKEFILE=/home/jd/local/lib/cfacil/Makefile.template
+CFACILINCLUDEPREPEND=@LETCDATADIR@/let-c.h
+CFACILSOURCE=@LETCDATADIR@/let-c.cpp
+CFACILMAKEFILE=@LETCDATADIR@/Makefile.template
 
 if [ ! -f "${ORIGFILE}" ]
 then
     exit 1
 fi
 
-cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/cfacil.h"
-cat "${CFACILSOURCE}" > "${TMPDIR}/cfacil.cpp"
+cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/let-c.h"
+cat "${CFACILSOURCE}" > "${TMPDIR}/let-c.cpp"
 cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/source.cpp"
 cat "${ORIGFILE}" >> "${TMPDIR}/source.cpp"
 cat "${CFACILMAKEFILE}" > "${TMPDIR}/Makefile"

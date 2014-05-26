@@ -3,7 +3,7 @@ vimtest: executable
 	./executable
 
 executable: source.o let-c.o
-	g++  let-c.o source.o `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lpthread -lm -lrt -Wl,--wrap,main ./executable
+	g++  let-c.o source.o `pkg-config --libs sdl` `pkg-config --libs gl` -lpthread -lm -lrt -Wl,--wrap,main -o ./executable
 
 source.o: source.cpp
 	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c source.cpp
