@@ -65,6 +65,9 @@ static timespec lastcall;
     bool      autorefresh = true;
     pthread_mutex_t GLmutex = PTHREAD_MUTEX_INITIALIZER;
 
+    int syncscreen = 0;
+    int needrefresh = 1;
+
 #define CLOCKID CLOCK_REALTIME
 #define SIG SIGRTMIN
 
@@ -281,25 +284,33 @@ cerr << "Ended via Escape keystroke" << endl;
 
 	if (!autorefresh) return;
 	if (pthread_mutex_trylock (&GLmutex) != 0) return;
-	    if (checkelapsedtime (33)) {
+	if (needrefresh == 0) {
+	    syncscreen = 1;
+	    return;
+	}
+//	    if (checkelapsedtime (10)) {
 		uploadtexture ();
 		renderflatty ();
-	    }
+		syncscreen = 1;
+		needrefresh = 0;
+//	    }
 	pthread_mutex_unlock (&GLmutex);
     }
 
     void inline autoupdatetexture () {
 	if (!autorefresh) return;
-	if (pthread_mutex_trylock (&GLmutex) != 0) return;
-	    if (checkelapsedtime (33)) {
-		uploadtexture ();
-		renderflatty ();
-	    }
-	pthread_mutex_unlock (&GLmutex);
+	needrefresh = 1;
+//	if (pthread_mutex_trylock (&GLmutex) != 0) return;
+//	    if (checkelapsedtime (33)) {
+//		uploadtexture ();
+//		renderflatty ();
+//	    }
+//	pthread_mutex_unlock (&GLmutex);
     }
 
     void startrefresh (void) {
 	autorefresh = true;
+	needrefresh = 1;
 	autoupdatetexture ();
     }
 
@@ -364,9 +375,19 @@ cerr << "Ended via Escape keystroke" << endl;
 	return 0;
     }
 
+    void vsync (void) {
+	sigset_t mask, oldmask;
+	sigemptyset (&mask);
+	sigaddset (&mask, SIG);
 
+	sigprocmask (SIG_BLOCK, &mask, &oldmask);
+	syncscreen = 0;
+	while (syncscreen == 0)
+	    sigsuspend (&oldmask);
+	sigprocmask (SIG_UNBLOCK, &mask, NULL);
+    }
 
-    void setcurcolor (int r, int g, int b) {
+    void setcolor (int r, int g, int b) {
 	// currentwpixel = ((r & 0xff)<<24) | ((g & 0xff)<<16) | ((b&0xff)<<8) | 0xff;
 	currentwpixel = (r & 0xff) | ((b & 0xff)<<16) | ((g&0xff)<<8) | (0xff<<24);
     }

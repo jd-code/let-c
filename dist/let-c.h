@@ -83,7 +83,9 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
     void startrefresh (void);
     void stoprefresh (void);
 
-    void setcurcolor (int r, int g, int b);
+    void vsync (void);
+
+    void setcolor (int r, int g, int b);
     void putpixel (int x, int y, int r, int g, int b);
     void putpixel (int x, int y);
     void clear (void);

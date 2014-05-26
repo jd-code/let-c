@@ -1,0 +1,11 @@
+let-c (0.9.0-3) trusty; urgency=low
+
+  * Dependency corrections
+
+ -- Jean-Daniel Pauget <pauget@nekodune.com>  Mon, 26 May 2014 16:32:18 +0200
+
+let-c (0.9.0-2) trusty; urgency=low
+
+  * Initial release
+
+ -- Jean-Daniel Pauget <pauget@nekodune.com>  Mon, 26 May 2014 12:28:43 +0200

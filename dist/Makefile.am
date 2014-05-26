@@ -35,4 +35,13 @@ clean-local:
 	rm -f ./executable
 	rm -f m4/*.m4
 	rm -f stamp-h2
+	rm -f "${PACKAGE}_${VERSION}.orig.tar.gz" tarfiles.txt
+
+.PHONY: tar
+tar: 
+	repozclean && autoall
+	find . | grep -v '\.git' | grep -v 'debian-src' | grep -v 'autom4te' > tarfiles.txt
+	bozoconf
+	tar -zcphf "${PACKAGE}_${VERSION}.orig.tar.gz" --no-recursion --transform='s=^='"${PACKAGE}"_"${VERSION}"'/=' -T tarfiles.txt
+	tar -ztvf "${PACKAGE}_${VERSION}.orig.tar.gz"
 

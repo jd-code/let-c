@@ -25,19 +25,20 @@ int main (int nb, char ** cmde) {
 	}
 
 	for (int t=0 ; t<20 ; t++) {
-	    setcurcolor (0,0,t*10+50);
-	    setcurcolor (Random(255), Random(255), Random(255));
+	    setcolor (0,0,t*10+50);
+	    setcolor (Random(255), Random(255), Random(255));
 	    line (Random(W), Random(H), Random(W), Random(H));
 
-	    setcurcolor (0,t*10+50,0);
-	    setcurcolor (Random(255), Random(255), Random(255));
+	    setcolor (0,t*10+50,0);
+	    setcolor (Random(255), Random(255), Random(255));
 	    line (Random(W), Random(H), Random(W), Random(H));
 
-	    setcurcolor (t*10+50,0,0);
-	    setcurcolor (Random(255), Random(255), Random(255));
+	    setcolor (t*10+50,0,0);
+	    setcolor (Random(255), Random(255), Random(255));
 	    line (Random(W), Random(H), Random(W), Random(H));
 	}
 
+	vsync();
     }
 
     cerr << "on va finir" << endl;
