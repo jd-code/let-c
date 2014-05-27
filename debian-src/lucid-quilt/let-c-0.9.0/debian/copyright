@@ -1,0 +1,24 @@
+This work was packaged for Debian by:
+
+    Jean-Daniel Pauget <pauget@nekodune.com> on Mon, 26 May 2014 12:28:43 +0200
+
+It was downloaded from http://let-c.nekodune.net/
+
+Upstream Author(s):
+
+    Jean-Daniel Pauget <pauget@nekodune.com>
+
+Copyright:
+
+    Copyright (C) 2014 Jean-Daniel Pauget <pauget@nekodune.com>
+
+License:
+
+    GPLv2
+
+The Debian packaging is:
+
+    Copyright (C) 2014 Jean-Daniel Pauget <pauget@nekodune.com>
+
+and is licensed under the GPL version 2, 
+see `/usr/share/common-licenses/GPL-2'.
