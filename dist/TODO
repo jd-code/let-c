@@ -1,10 +1,11 @@
 
 missing functions or so :
-    circle
     getch or so
-    getmouse
 
 done
+    mousek
+    getmouse
+    circle
     vsync
     setcolor  (was setcurcolor)
 

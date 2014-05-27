@@ -68,6 +68,10 @@ static timespec lastcall;
     int syncscreen = 0;
     int needrefresh = 1;
 
+    int mousekey = 0;
+    int mousex = 0;
+    int mousey = 0;
+
 #define CLOCKID CLOCK_REALTIME
 #define SIG SIGRTMIN
 
@@ -89,6 +93,75 @@ static timespec lastcall;
 	return r;
     }
 
+    int initmaxscren (int &w, int &h) {
+// ------- start
+	if (SDL_Init (SDL_INIT_VIDEO) < 0) {
+	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
+	    return -1;
+	}
+	{	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
+	    if (p == NULL) {
+		cerr << "SDL_VideoInfo () failed : " << SDL_GetError() << endl ;
+		return -1;
+	    }
+	    initial_w = p->current_w;
+	    initial_h = p->current_h;
+	}
+	// screen = SDL_SetVideoMode(scr_width, scr_height, 16, SDL_OPENGL|SDL_SWSURFACE|SDL_RESIZABLE);
+
+	{
+	    double screen_ratio = ((double)initial_w) / initial_h;
+	    double render_ratio = ((double)w) / h;
+
+	    if (screen_ratio > render_ratio) {
+		window_h = initial_h-32;
+		window_w = window_h * render_ratio;
+	    } else {
+		window_w = initial_w-32;
+		window_h = window_w / render_ratio;
+	    }
+	}
+//	window_w = initial_w-32;
+//	window_h = initial_h-32;
+
+	screen = SDL_SetVideoMode(window_w, window_h, 16, SDL_OPENGL|SDL_SWSURFACE);
+	// screen = SDL_SetVideoMode(initial_w-32, initial_h-32, 16, SDL_OPENGL|SDL_SWSURFACE);
+
+
+	if (screen == NULL) {
+	    cerr << "Couldn't set " << window_w << "x" << window_h << " video mode : " << SDL_GetError() << endl;
+	    return -1;
+	}
+
+	h=window_h;
+	w=window_w;
+cerr << "[" << w << "x" << h << "]" << endl;
+	rawscreen = (uint8_t *) malloc (4*w*h);
+	if  (rawscreen == NULL) {
+	    cerr << "initscreen : could not allocate " << w << "x" << h << "x4 bytes ..." << endl;
+	    return -1;
+	}
+	texturew = w;
+	textureh = h;
+
+
+	glEnable(GL_LIGHTING);
+	glEnable (GL_TEXTURE_2D);
+
+	glGenTextures (1, &texture);
+	glBindTexture (GL_TEXTURE_2D, texture);
+	//glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, texturew, textureh, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawscreen);
+
+//	GLmutex = SDL_CreateMutex();
+
+	settle_timer ();
+
+	return 0;
+    }
 
     int initscreen (int w, int h) {
 	rawscreen = (uint8_t *) malloc (4*w*h);
@@ -265,6 +338,17 @@ glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		    leavescreen ();
 cerr << "Ended via closing window" << endl;
 		    exit(0);
+		case SDL_MOUSEMOTION:
+		    mousex = event.motion.x;
+		    mousey = event.motion.y;
+		    break;
+		case SDL_MOUSEBUTTONDOWN:
+		    mousekey |= 1 << (event.button.button-1);
+		    break;
+		case SDL_MOUSEBUTTONUP:
+		    mousekey &= ~(1 << (event.button.button-1));
+		    break;
+
 		case SDL_KEYDOWN:
 // cerr << "keysym = " << event.key.keysym.sym << endl;
 		    SDLKey keysym = event.key.keysym.sym;
@@ -480,6 +564,37 @@ cerr << "Ended via Escape keystroke" << endl;
 //	putpixel (x0,y0);
 	autoupdatetexture ();
     }
+
+    void circle (int xc, int yc, double r) {
+	double a;
+	int x1 = xc+r, y1=yc;
+
+	stoprefresh ();
+	for (a=0.01 ; a < 2*M_PI ; a+= 0.01) {
+	    int x2 = xc + r*cos(a);
+	    int y2 = yc + r*sin(a);
+	    line (x1,y1, x2,y2);
+	    x1=x2, y1=y2;
+	}
+	line (x1,y1, xc+r,yc);
+	startrefresh ();
+    }
+
+    int mousek (void) {
+	return mousekey;
+    }
+
+    void getmouse (int &x, int &y) {
+	x = (texturew*mousex)/window_w;
+	y = (textureh*(window_h-mousey))/window_h;
+    }
+
+    void getmouse (int &x, int &y, int &k) {
+	x = (texturew*mousex)/window_w;
+	y = (textureh*(window_h-mousey))/window_h;
+	k = mousekey;
+    }
+
 
     int Random (int max) {
 	return (int)(((long int)random () * max)/RAND_MAX);

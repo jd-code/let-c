@@ -1,0 +1,32 @@
+.TH "let-c @VERSION@" "1" "2014" "jd" "Let-C package"
+.SH NAME
+let-c \- trivial C coding and building via a crafted editor.
+.br
+.SH SYNOPSIS
+.B
+let-c
+.RI "[" "filename.cpp" "] ["
+.RB " ... " nano " flags ... ]"
+.SH DESCRIPTION
+.B let-c
+invokes a simple text editor
+.RB "(" "nano" ", in this release)"
+and allows straighforward testing of the edited file by a single key-press :
+.BR F12 "."
+.SH COMPILATION AND EXECTUTION
+the
+.B F12
+key triggers the build (the compilation) and, if successful, launches the
+built result.
+.br
+It is recommended to name the file with the cpp extension right on the command-line
+so that syntax hilighting is enabled from the start.
+.SH FILES
+The actual scheme builds everything in /tmp and erases after the execution
+.SH SEE ALSO
+.RB "(1)" "nano, " "(1)" "build-4-nano-let-c." 
+.SH BUGS
+There are probably plenty. Please report them to
+.B let-c@nekodune.com
+.SH AUTHOR
+Jean-Daniel Pauget (let-c@nekodune.com)

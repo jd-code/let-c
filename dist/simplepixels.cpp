@@ -3,13 +3,16 @@
 int main (int nb, char ** cmde) {
     cout << "on demarre ..." << endl;
 
-    int W = 320;
-    int H = 200;
+    int W = 1024;
+    int H = 768;
 
-    initscreen (W, H);
+    if (false)
+	initscreen (W, H);
+    else
+	initmaxscren (W, H);
 
 
-    for (int i=0 ; i<3000 ; i++) {
+    for (int i=0 ; mousek()==0 ; i++) {
 
 	if (false) {
 	    clear();
@@ -38,6 +41,14 @@ int main (int nb, char ** cmde) {
 	    line (Random(W), Random(H), Random(W), Random(H));
 	}
 
+	setcolor (255,255,255);
+	int Xm, Ym;
+	getmouse (Xm, Ym);
+	line (Random(0), Random(0), Xm, Ym);
+	for (int t=0 ; t<H ; t+=H/10) {
+	    circle (Xm, Ym, t+(i % (H/10)));
+	}
+
 	vsync();
     }
 
@@ -45,6 +56,4 @@ int main (int nb, char ** cmde) {
 
     return 0;
 }
-
-
 

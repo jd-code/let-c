@@ -75,6 +75,7 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
 #endif
 
     int initscreen (int w, int h);
+    int initmaxscren (int &w, int &h);
 
     void uploadtexture (void);
     void renderflatty (void);
@@ -93,6 +94,12 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
     void rhline (int x1, int y1, int x2, int y2, Uint32 pixel);
     void rvline (int x1, int y1, int x2, int y2, Uint32 pixel);
     void line(int x0, int y0, int x1, int y1);
+    void circle (int xc, int yc, double r);
+
+    int mousek (void);
+    void getmouse (int &x, int &y);
+    void getmouse (int &x, int &y, int &k);
+
     int Random (int max);
 
 } // namespace let_c

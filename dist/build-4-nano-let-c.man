@@ -1,0 +1,64 @@
+.TH "build-4-nano-let-c @VERSION@" "1" "2014" "jd" "Let-C package"
+.SH NAME
+build-4-nano-let-c \- trivial build via Let-C scheme for nano.
+.SH SYNOPSIS
+.B
+build-4-nano-let-c
+.I "filename.cpp"
+.SH DESCRIPTION
+This script is rather intended to be used via
+.B let-c
+modification of nano, see
+.RB "(1)" let-c "."
+.br
+.B build-4-nano-let-c
+copies the given source file to a temporary location, prepends and appends
+crafted extensions for seemless "automatic" inclusion of casual templates
+and libraries.
+.br
+A
+.I Makefile
+template is then used for the build process. If successfully built, the result is launched,
+otherwise, some error infos are
+.B appended
+to the original file for further interpretation and rendering via nano.
+.SH LIBRARIES
+.B Let-C
+is mainly a wrap around
+.B libSDL
+and regular
+.BR "STL templates" "."
+.SH WRAPS AND HOOKS
+Several hacks are used for preventing loss of control :
+.br
+the
+.I main
+function call is wrapped in order to tidy things before leaving the process.
+.br
+A
+.I timer handler
+is set-up whenever some graphic window is created for catching keyboard and mouse
+events.
+.br
+.I The script appends
+a special footer to the
+.I given file
+in order to bring back error messages and cursor location to nano.
+.SH FILES
+.SS
+.IR @LETCDATADIR@/let-c.h " :"
+the prepended header. Includes several STL templates, Matcalc utilities, SDL and OpenGL headers.
+.SS
+.IR @LETCDATADIR@/let-c.cpp " :"
+set of initialisations, graphic primitives and wrappers.
+.SS
+.IR @LETCDATADIR@/Makefile.template " :"
+the Makefile template, uses linker wrapping options.
+.SH SEE ALSO
+.RB "(1)" "let-c, " "(1)" "nano."
+.SH BUGS
+There are probably plenty. Please report them to
+.B let-c@nekodune.com
+.SH AUTHOR
+Jean-Daniel Pauget (let-c@nekodune.com)
+
