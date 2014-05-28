@@ -27,7 +27,7 @@ dnl
 dnl let-c@nekodune.com  -  http://let-c.nekodune.com/
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([let-c], [0.9.2], [let-c@nekodune.com])
+AC_INIT([let-c], [0.9.3], [let-c@nekodune.com])
 AC_CONFIG_SRCDIR([./let-c.cpp])
 
 

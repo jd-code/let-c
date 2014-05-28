@@ -370,6 +370,7 @@ cerr << "Ended via Escape keystroke" << endl;
 	if (pthread_mutex_trylock (&GLmutex) != 0) return;
 	if (needrefresh == 0) {
 	    syncscreen = 1;
+	    pthread_mutex_unlock (&GLmutex);
 	    return;
 	}
 //	    if (checkelapsedtime (10)) {
@@ -460,6 +461,7 @@ cerr << "Ended via Escape keystroke" << endl;
     }
 
     void vsync (void) {
+	if (!autorefresh) return;
 	sigset_t mask, oldmask;
 	sigemptyset (&mask);
 	sigaddset (&mask, SIG);
