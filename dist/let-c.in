@@ -2,5 +2,5 @@
 
 # a shortcut for launching nano editor ready to trigger some easy "build-4-let-c" !
 
-exec @NANO_EDITOR_BIN@ -B -E -T4 -i --speller=@LETCBINDIR@/build-4-let-c "${@}"
+exec @NANO_EDITOR_BIN@ -B -E -T4 --speller=@LETCBINDIR@/build-4-nano-let-c "${@}"
 

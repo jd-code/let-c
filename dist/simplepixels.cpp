@@ -3,13 +3,13 @@
 int main (int nb, char ** cmde) {
     cout << "on demarre ..." << endl;
 
-    int W = 1024;
-    int H = 768;
+    int W = 320;
+    int H = 200;
 
-    if (false)
-	initscreen (W, H);
+    if (true)
+	    initscreen (W, H);
     else
-	initmaxscren (W, H);
+	    initmaxscren (W, H);
 
 
     for (int i=0 ; mousek()==0 ; i++) {
