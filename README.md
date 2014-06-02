@@ -3,8 +3,8 @@
 
 **Let-C** is a set of headers, templates and utilities for programming tutorials.
 
-By combining libSDL, simple graphical primitives, and some tuning to open source
-utilities, **Let-C** permits writing a few lines of codes and have them compiled and
+By combining libSDL, simple graphical primitives, and some open-source utilities
+tuning, **Let-C** permits writing a few lines of codes and have them compiled and
 launched **in one key-press**.
 
 > **Let-C** brings back the ease of simple programming that
@@ -14,7 +14,7 @@ launched **in one key-press**.
 
 Typing "**let-c**" invokes a crafted intsance of the "nano" text-editor.
 
-The following source is typed-in :
+The following source is typed in :
 
 ```C++
 int main (void) {
@@ -32,14 +32,14 @@ int main (void) {
 }
 ```
 
-at **F12** key-press, all is compiled and linked, and the result window pops up :
+at **F12** key-press, all is compiled, linked, and the result window pops up :
 
 ![result](https://raw.githubusercontent.com/jd-code/let-c/master/misc/let-c-filtendus.png)
 
 
 ## Dependencies ##
 
-Let-C depends on several stae-of-the-art open-source softwares :
+Let-C depends on several state-of-the-art open-source softwares :
 
 * [gcc](http://gcc.gnu.org/) - the GNU Compiler Collection, mostly the C/C++ compiler and the linker (for it's ability to wrap functions).
 * [libSDL](http://www.libsdl.org/) - the Simple DirectMedia Layer, the version 1.2 is used, and the choice of 2.0 is underway.
@@ -63,7 +63,7 @@ packages for *wheezy* and *squeeze* are available via those repositories, gpg-si
 
 ## ubuntu ##
 
-packages for ubutu releases are available via [launchpad/letc](https://launchpad.net/~nekodune/+archive/let-c).
+packages for ubuntu releases trusty, precise and lucid are available via [launchpad/Let-C](https://launchpad.net/~nekodune/+archive/let-c).
 
 adding the **Let-C** ubuntu repository to you system :
 ```sh
@@ -73,15 +73,15 @@ sudo add-apt-repository ppa:nekodune/let-c
 
 ## Installation ##
 
-Packages are though to be the best way of installing (see above), however
-the source can be compiled after some usual autotool invocations :
+Using packages is probably the best way for installing let-C (see above), however
+the sources can be compiled and installed after some usual autotool invocations :
 
 ```sh
-cd dist
-(g)libtoolize --copy && aclocal && autoheader && automake   --add-missing && autoconf
-./configure -prefix=/usr/local
-make
-make install
+> cd dist
+> (g)libtoolize --copy && aclocal && autoheader && automake --add-missing && autoconf
+> ./configure -prefix=/usr/local
+> make
+# make install
 ```
 
 some releases ready to configure are also avalaible in the ```debian-src``` directory
