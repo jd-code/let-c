@@ -1,5 +1,6 @@
 
-vimtest: executable
+vimtest: executable func3doldies
+	./func3doldies
 	./executable
 
 
@@ -30,6 +31,13 @@ let-c: let-c.in
 	$(do_subst) < let-c.in > let-c
 	chmod +x let-c
 
+
+func3doldies: func3doldies.o
+	g++  let-c.o func3doldies.o `pkg-config --libs sdl` `pkg-config --libs gl` -o func3doldies -lpthread -lm -lrt -Wl,--wrap,main
+
+func3doldies.o: func3doldies.cpp
+	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c  func3doldies.cpp
+
 executable: let-c.o simplepixels.o
 	g++  let-c.o simplepixels.o `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lpthread -lm -lrt -Wl,--wrap,main 
 
@@ -42,6 +50,7 @@ let-c.o: let-c.h let-c.cpp
 clean-local:
 	rm -f let-c.o  simplepixels.o
 	rm -f ./executable
+	rm -f func3doldies.o func3doldies
 	rm -f m4/*.m4
 	rm -f stamp-h2
 	rm -f "${PACKAGE}_${VERSION}.orig.tar.gz" tarfiles.txt

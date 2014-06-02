@@ -75,7 +75,7 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
 #endif
 
     int initscreen (int w, int h);
-    int initmaxscren (int &w, int &h);
+    int initmaxscreen (int &w, int &h);
 
     void uploadtexture (void);
     void renderflatty (void);
@@ -89,6 +89,8 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
     void setcolor (int r, int g, int b);
     void putpixel (int x, int y, int r, int g, int b);
     void putpixel (int x, int y);
+    void fputpixel (int x, int y, int r, int g, int b);
+    void fputpixel (int x, int y);
     void clear (void);
 
     void rhline (int x1, int y1, int x2, int y2, Uint32 pixel);

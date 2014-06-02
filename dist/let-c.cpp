@@ -27,27 +27,6 @@ static timespec lastcall;
 	return false;
     }
 
-//    Vector4 GLRGBA_BLACK       (0.0, 0.0, 0.0, 1.0);
-//    Vector4 GLRGBA_TRANSPBLACK (0.0, 0.0, 0.0, 0.0);
-//    Vector4 GLRGBA_WHITE       (1.0, 1.0, 1.0, 1.0);
-//    
-//    Vector4 GLRGBA_RED         (1.0, 0.0, 0.0, 1.0);
-//    Vector4 GLRGBA_GREEN       (0.0, 1.0, 0.0, 1.0);
-//    Vector4 GLRGBA_BLUE        (0.0, 0.0, 1.0, 1.0);
-//    Vector4 GLRGBA_YELLOW      (1.0, 1.0, 0.0, 1.0);
-//    Vector4 GLRGBA_CYAN        (0.0, 1.0, 1.0, 1.0);
-//    Vector4 GLRGBA_MAUVE       (1.0, 0.0, 1.0, 1.0);
-//    
-//    Vector4 GLRGBA_DARKRED     (0.5, 0.0, 0.0, 1.0);
-//    Vector4 GLRGBA_DARKGREEN   (0.0, 0.5, 0.0, 1.0);
-//    Vector4 GLRGBA_DARKBLUE    (0.0, 0.0, 0.5, 1.0);
-//    Vector4 GLRGBA_DARKYELLOW  (0.5, 0.5, 0.0, 1.0);
-//    Vector4 GLRGBA_DARKCYAN    (0.0, 0.5, 0.5, 1.0);
-//    Vector4 GLRGBA_DARKMAUVE   (0.5, 0.0, 0.5, 1.0);
-//    
-//    Vector4 GLRGBA_ORANGE      (1.0, 5.0, 0.0, 1.0);
-
-
 
 	int	initial_w = -1,
 		initial_h = -1;
@@ -93,7 +72,7 @@ static timespec lastcall;
 	return r;
     }
 
-    int initmaxscren (int &w, int &h) {
+    int initmaxscreen (int &w, int &h) {
 // ------- start
 	if (SDL_Init (SDL_INIT_VIDEO) < 0) {
 	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
@@ -160,6 +139,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 
 	settle_timer ();
 
+	clear();
 	return 0;
     }
 
@@ -223,6 +203,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 
 	settle_timer ();
 
+	clear();
 	return 0;
     }
 
@@ -478,7 +459,23 @@ cerr << "Ended via Escape keystroke" << endl;
 	currentwpixel = (r & 0xff) | ((b & 0xff)<<16) | ((g&0xff)<<8) | (0xff<<24);
     }
 
+    void fputpixel (int x, int y, int r, int g, int b) {
+	uint8_t *p = rawscreen + ((x+texturew*y) << 2);
+	*p++ = r;
+	*p++ = g;
+	*p++ = b;
+	*p++ = 255;
+	autoupdatetexture ();
+    }
+
+    void fputpixel (int x, int y) {
+	uint32_t *p = (uint32_t *) (rawscreen + ((x+texturew*y) << 2));
+	*p = currentwpixel;
+	autoupdatetexture ();
+    }
+
     void putpixel (int x, int y, int r, int g, int b) {
+	if ((x<0) || (y<0) || (x>=texturew) || (y>=textureh)) return;
 	uint8_t *p = rawscreen + ((x+texturew*y) << 2);
 	*p++ = r;
 	*p++ = g;
@@ -488,6 +485,7 @@ cerr << "Ended via Escape keystroke" << endl;
     }
 
     void putpixel (int x, int y) {
+	if ((x<0) || (y<0) || (x>=texturew) || (y>=textureh)) return;
 	uint32_t *p = (uint32_t *) (rawscreen + ((x+texturew*y) << 2));
 	*p = currentwpixel;
 	autoupdatetexture ();
@@ -549,21 +547,19 @@ cerr << "Ended via Escape keystroke" << endl;
 
 	while (true) {
 	    if ((x0>=0) && (y0>=0) && (x0<texturew) && (y0<textureh))
-		putpixel (x0,y0);
+		fputpixel (x0,y0);
 	    if ((x0 == x1) && (y0 == y1)) break;
 
 	    int e2 = err;
 	    if (e2 > -dx) { 
 		err -= dy; x0 += sx;
-//if ((x0 == x1) && (y0 == y1)) break;
 	    }
-//if ((x0 == x1) && (y0 == y1)) break;
 	    if (e2 < dy) {
 		err += dx; y0 += sy;
-//if ((x0 == x1) && (y0 == y1)) break;
 	    }
 	}
-//	putpixel (x0,y0);
+	if ((x0>=0) && (y0>=0) && (x0<texturew) && (y0<textureh))
+	    fputpixel (x0,y0);
 	autoupdatetexture ();
     }
 

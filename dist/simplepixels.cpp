@@ -9,7 +9,7 @@ int main (int nb, char ** cmde) {
     if (true)
 	    initscreen (W, H);
     else
-	    initmaxscren (W, H);
+	    initmaxscreen (W, H);
 
 
     for (int i=0 ; mousek()==0 ; i++) {
