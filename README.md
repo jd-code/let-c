@@ -34,7 +34,7 @@ int main (void) {
 
 at **F12** key-press, all is compiled and linked, and the result window pops up :
 
-![alt tag](http://bulkrays2.nkdn.fr/let-c-filtendus.png)
+![result](https://raw.githubusercontent.com/jd-code/let-c/master/misc/let-c-filtendus.png)
 
 
 ## Dependencies ##
