@@ -1,3 +1,9 @@
+let-c (0.9.3-3~trusty) trusty; urgency=low
+
+  * Package generation correction
+
+ -- Jean-Daniel Pauget <pauget@nekodune.com>  Tue, 03 Jun 2014 11:08:45 +0200
+
 let-c (0.9.3-2~trusty) trusty; urgency=low
 
   * Dependecies tunning
