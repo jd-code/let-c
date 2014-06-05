@@ -6,11 +6,15 @@ let-c \- trivial C coding and building via a crafted editor.
 .B
 let-c
 .RI "[" "filename.cpp" "] ["
-.RB " ... " nano " flags ... ]"
+.RB " ... " editor " flags ... ]"
 .SH DESCRIPTION
 .B let-c
-invokes a simple text editor
-.RB "(" "nano" ", in this release)"
+invokes a text editor according to the
+.B EDITOR
+environment variable
+.RB "(" "vim" ", if EDITOR is either
+.IR "vi" " or " "vim" ","
+.BR "nano" " otherwise)"
 and allows straighforward testing of the edited file by a single key-press :
 .BR F12 "."
 .SH COMPILATION AND EXECTUTION
@@ -24,7 +28,7 @@ so that syntax hilighting is enabled from the start.
 .SH FILES
 The actual scheme builds everything in /tmp and erases after the execution
 .SH SEE ALSO
-.RB "(1)" "nano, " "(1)" "build-4-nano-let-c." 
+.RB "(1)" "nano, " "(1)" "build-4-nano-let-c," "(1)" "vim."
 .SH BUGS
 There are probably plenty. Please report them to
 .B let-c@nekodune.com

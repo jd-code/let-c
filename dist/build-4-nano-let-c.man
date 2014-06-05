@@ -2,8 +2,7 @@
 .SH NAME
 build-4-nano-let-c \- trivial build via Let-C scheme for nano.
 .SH SYNOPSIS
-.B
-build-4-nano-let-c
+.BR build-4-nano-let-c " [-vim] "
 .I "filename.cpp"
 .SH DESCRIPTION
 This script is rather intended to be used via
@@ -19,9 +18,12 @@ and libraries.
 A
 .I Makefile
 template is then used for the build process. If successfully built, the result is launched,
-otherwise, some error infos are
+otherwise, some error infos are either
 .B appended
-to the original file for further interpretation and rendering via nano.
+to the original file for further interpretation and rendering via nano, or typed to 
+.IR stderr " if the "
+.BR  -vim " flag"
+was set.
 .SH LIBRARIES
 .B Let-C
 is mainly a wrap around
@@ -40,8 +42,9 @@ A
 is set-up whenever some graphic window is created for catching keyboard and mouse
 events.
 .br
-.I The script appends
-a special footer to the
+Unless stated via the 
+.B -vim
+flag, the script appends a special footer to the
 .I given file
 in order to bring back error messages and cursor location to nano.
 .SH FILES

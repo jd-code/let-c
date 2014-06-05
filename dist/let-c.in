@@ -1,6 +1,45 @@
-#!/bin/sh
+#!/bin/bash
 
 # a shortcut for launching nano editor ready to trigger some easy "build-4-let-c" !
 
-exec @NANO_EDITOR_BIN@ -B -E -T4 --speller=@LETCBINDIR@/build-4-nano-let-c "${@}"
+
+
+
+editvianano () {
+    exec @NANO_EDITOR_BIN@ -B -E -T4 --speller=@LETCBINDIR@/build-4-nano-let-c "${@}"
+}
+
+editviavim () {
+    exec vim -c 'set makeprg=/tmp/bok/bin/build-4-nano-let-c\ -vim\ %' -c 'map <F12> :wa<CR>:make<CR>' -c 'map <F9> :cp<CR>' -c 'map <F10> :cn<CR>' "${@}"
+}
+
+if [ "E${1}E" = "E-nanoE" ]
+then
+    shift
+    editvianano "${@}"
+fi
+
+if [ "E${1}E" = "E-vimE" ]
+then
+    shift
+    editviavim "${@}"
+fi
+
+if [ "$EDITOR" ]
+then
+    case "$EDITOR" in
+	"vi")
+	    if vi --version 2>&1 | grep VIM > /dev/null
+	    then
+		editviavim "${@}"
+	    fi
+	    ;;
+	"vim")
+	    editviavim "${@}"
+	    ;;
+    esac
+fi
+
+# the fall-back is nano
+editvianano "${@}"
 

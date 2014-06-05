@@ -3,6 +3,13 @@
 TMPFILE=`mktemp`
 TMPDIR=`mktemp -d /tmp/LetC.XXXXXXXXXX`
 ORIGFILE="$1"
+MODEVIM="NO"
+
+if [ "E${1}E" = "E-vimE" ]
+then
+    ORIGFILE="$2"
+    MODEVIM="YES"
+fi
 
 CFACILINCLUDEPREPEND=@LETCDATADIR@/let-c.h
 CFACILSOURCE=@LETCDATADIR@/let-c.cpp
@@ -16,6 +23,10 @@ fi
 cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/let-c.h"
 cat "${CFACILSOURCE}" > "${TMPDIR}/let-c.cpp"
 cat "${CFACILINCLUDEPREPEND}" > "${TMPDIR}/source.cpp"
+if [ "$MODEVIM" = "YES" ]
+then
+    echo '# 1 "'"${ORIGFILE}"'"' >> "${TMPDIR}/source.cpp"
+fi
 cat "${ORIGFILE}" >> "${TMPDIR}/source.cpp"
 cat "${CFACILMAKEFILE}" > "${TMPDIR}/Makefile"
 
@@ -25,6 +36,11 @@ cat "${CFACILMAKEFILE}" > "${TMPDIR}/Makefile"
 ) | tee "${TMPFILE}"
 
 rm -r "${TMPDIR}"
+
+if [ "$MODEVIM" = "YES" ]
+then
+    exit 0
+fi
 
 HEADERROR=`grep '\:[0-9]*\:' < "${TMPFILE}" | head -1`
 

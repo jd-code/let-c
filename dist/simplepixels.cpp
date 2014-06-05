@@ -11,7 +11,6 @@ int main (int nb, char ** cmde) {
     else
 	    initmaxscreen (W, H);
 
-
     for (int i=0 ; mousek()==0 ; i++) {
 
 	if (false) {
@@ -56,4 +55,3 @@ int main (int nb, char ** cmde) {
 
     return 0;
 }
-
