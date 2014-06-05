@@ -1,6 +1,10 @@
 
-missing functions or so :
-    getch or so
+
+todo
+    getch (or so)
+    gedit integration
+	create tool profile
+	patch build-4 for (xterm|gnome-terminal)-launch
 
 done
     mousek
@@ -8,4 +12,6 @@ done
     circle
     vsync
     setcolor  (was setcurcolor)
+    vim integration
+
 
