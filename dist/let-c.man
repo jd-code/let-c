@@ -5,7 +5,7 @@ let-c \- trivial C coding and building via a crafted editor.
 .SH SYNOPSIS
 .B
 let-c
-.RI "[" "filename.cpp" "] ["
+.RI "[-vim|-nano] [" "filename.cpp" "] ["
 .RB " ... " editor " flags ... ]"
 .SH DESCRIPTION
 .B let-c
@@ -17,7 +17,7 @@ environment variable
 .BR "nano" " otherwise)"
 and allows straighforward testing of the edited file by a single key-press :
 .BR F12 "."
-.SH COMPILATION AND EXECTUTION
+.SH COMPILATION AND EXECUTION
 the
 .B F12
 key triggers the build (the compilation) and, if successful, launches the
@@ -25,10 +25,17 @@ built result.
 .br
 It is recommended to name the file with the cpp extension right on the command-line
 so that syntax hilighting is enabled from the start.
+.SH OPTIONS
+.SS
+.B "-vim"
+forces the use of vim editor.
+.SS
+.B "-nano"
+forces the use of nano editor.
 .SH FILES
 The actual scheme builds everything in /tmp and erases after the execution
 .SH SEE ALSO
-.RB "(1)" "nano, " "(1)" "build-4-nano-let-c," "(1)" "vim."
+.RB "(1)" "nano, " "(1)" "build-4-nano-let-c, " "(1)" "vim."
 .SH BUGS
 There are probably plenty. Please report them to
 .B let-c@nekodune.com
