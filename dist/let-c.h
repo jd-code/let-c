@@ -74,6 +74,8 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_DARKMAUVE   ;
 CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
 #endif
 
+    void uncatch_failures (void);
+
     int initscreen (int w, int h);
     int initmaxscreen (int &w, int &h);
 

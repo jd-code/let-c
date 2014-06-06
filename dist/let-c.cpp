@@ -32,6 +32,7 @@ static timespec lastcall;
 		initial_h = -1;
 	int	 window_w = -1,
 		 window_h = -1;
+   bool exitoninitfailure = true;
   SDL_Surface	  *screen = NULL;
        GLuint	  texture;
        uint8_t *rawscreen = NULL;
@@ -42,7 +43,7 @@ static timespec lastcall;
     Uint32  currentwpixel = 0xffffffff;
 
     bool      autorefresh = true;
-    pthread_mutex_t GLmutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_t GLmutex = PTHREAD_MUTEX_INITIALIZER;
 
     int syncscreen = 0;
     int needrefresh = 1;
@@ -72,15 +73,21 @@ static timespec lastcall;
 	return r;
     }
 
+    void uncatch_failures (void) {
+	exitoninitfailure = false;
+    }
+
     int initmaxscreen (int &w, int &h) {
 // ------- start
 	if (SDL_Init (SDL_INIT_VIDEO) < 0) {
 	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
+	    if (exitoninitfailure) exit (2);
 	    return -1;
 	}
 	{	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
 	    if (p == NULL) {
 		cerr << "SDL_VideoInfo () failed : " << SDL_GetError() << endl ;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
 		return -1;
 	    }
 	    initial_w = p->current_w;
@@ -109,6 +116,7 @@ static timespec lastcall;
 
 	if (screen == NULL) {
 	    cerr << "Couldn't set " << window_w << "x" << window_h << " video mode : " << SDL_GetError() << endl;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
 
@@ -118,6 +126,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	rawscreen = (uint8_t *) malloc (4*w*h);
 	if  (rawscreen == NULL) {
 	    cerr << "initscreen : could not allocate " << w << "x" << h << "x4 bytes ..." << endl;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
 	texturew = w;
@@ -147,17 +156,20 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	rawscreen = (uint8_t *) malloc (4*w*h);
 	if  (rawscreen == NULL) {
 	    cerr << "initscreen : could not allocate " << w << "x" << h << "x4 bytes ..." << endl;
+	    if (exitoninitfailure) exit (2);
 	    return -1;
 	}
 	texturew = w;
 	textureh = h;
 	if (SDL_Init ( SDL_INIT_VIDEO) < 0) {
 	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
 	{	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
 	    if (p == NULL) {
 		cerr << "SDL_VideoInfo () failed : " << SDL_GetError() << endl ;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
 		return -1;
 	    }
 	    initial_w = p->current_w;
@@ -185,6 +197,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 
 	if (screen == NULL) {
 	    cerr << "Couldn't set " << window_w << "x" << window_h << " video mode : " << SDL_GetError() << endl;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
 
