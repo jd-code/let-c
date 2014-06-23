@@ -12,7 +12,7 @@ launched **in one key-press**.
 
 # Example #
 
-Typing "**let-c**" invokes a crafted intsance of the "nano" text-editor.
+Typing "**let-c**" invokes a crafted instance of the "nano" text-editor.
 
 The following source is typed in :
 
@@ -61,7 +61,7 @@ packages for *wheezy* and *squeeze* are available via those repositories, gpg-si
 
     ```deb http://archive.disjunkt.com/debian/ squeeze main```
 
-## ubuntu ##
+### ubuntu ###
 
 packages for ubuntu releases trusty, precise and lucid are available via [launchpad/Let-C](https://launchpad.net/~nekodune/+archive/let-c).
 
@@ -71,7 +71,7 @@ sudo add-apt-repository ppa:nekodune/let-c
 ```
 
 
-## Installation ##
+## Installation from sources ##
 
 Using packages is probably the best way for installing let-C (see above), however
 the sources can be compiled and installed after some usual autotool invocations :
@@ -84,7 +84,7 @@ the sources can be compiled and installed after some usual autotool invocations 
 # make install
 ```
 
-some releases ready to configure are also avalaible in the ```debian-src``` directory
+some release archives, ready to configure without autotools, are also avalaible in the ```debian-src``` directory
 
 
 ## License ##
