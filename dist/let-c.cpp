@@ -7,13 +7,39 @@
 #include <pthread.h>
 //#include "SDL_thread.h"
 
+#ifdef __MACH__
+#include <sys/time.h>
+#endif	// __MACH__
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+#define SDL2 SDL2_IN_USE
+#endif
+
 using namespace std;
 
 namespace let_c {
 
+#ifdef SDL2
+typedef SDL_Keycode KeyCode;
+#else
+typedef SDLKey KeyCode;
+#endif
 
 
     bool checkelapsedtime (uint32_t ceil) {
+#ifdef __MACH__
+static struct timeval lastcall;	    // maybe gettimefoday should be used on all systems ????
+	struct timeval curtime;
+	if (gettimeofday(&curtime, NULL)) {
+	    uint32_t r = (curtime.tv_sec - lastcall.tv_sec) * 1000 + (curtime.tv_usec - lastcall.tv_usec) / 1000;
+	    if (r > ceil) {
+		lastcall.tv_sec = curtime.tv_sec;
+		lastcall.tv_usec = curtime.tv_usec;
+		return true;
+	    }
+	}
+	return false;
+#else  // __MACH__
 static timespec lastcall;
 	timespec curtime;
 	clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &curtime);
@@ -25,6 +51,7 @@ static timespec lastcall;
 	    return true;
 	}
 	return false;
+#endif  // __MACH__
     }
 
 
@@ -33,7 +60,12 @@ static timespec lastcall;
 	int	 window_w = -1,
 		 window_h = -1;
    bool exitoninitfailure = true;
+#ifdef SDL2
+  SDL_Window     *Wscreen = NULL;
+  SDL_GLContext glcontext = NULL;
+#else
   SDL_Surface	  *screen = NULL;
+#endif
        GLuint	  texture;
        uint8_t *rawscreen = NULL;
 
@@ -52,10 +84,24 @@ static timespec lastcall;
     int mousex = 0;
     int mousey = 0;
 
-#define CLOCKID CLOCK_REALTIME
-#define SIG SIGRTMIN
 
+#ifndef __MACH__
+#   define USE_SIGTIMER
+#else
+#   define USE_METRONOME
+#endif
+
+#ifdef USE_SIGTIMER
+#   define CLOCKID CLOCK_REALTIME
+#   define SIG SIGRTMIN
+#endif
+#ifdef USE_METRONOME
+#   define SIG SIGALRM
+#endif
+
+#ifdef USE_SIGTIMER
     timer_t timerid;
+#endif
 
     int stoptimer (void) {
 	int r = 0;
@@ -69,7 +115,11 @@ static timespec lastcall;
 	    r = -1;
 	}
 
+#ifdef USE_SIGTIMER
 	timer_delete (timerid);
+#else
+	// JDJDJDJDJD missing stopping metronome thread
+#endif
 	return r;
     }
 
@@ -80,11 +130,39 @@ static timespec lastcall;
     int initmaxscreen (int &w, int &h) {
 // ------- start
 	if (SDL_Init (SDL_INIT_VIDEO) < 0) {
+//	if (SDL_Init (SDL_INIT_EVERYTHING) < 0) {
 	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
 	    if (exitoninitfailure) exit (2);
 	    return -1;
 	}
-	{	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
+	{
+#ifdef SDL2
+	    int nbdisplay = SDL_GetNumVideoDisplays ();
+	    if (nbdisplay <= 0) {
+		cerr << "SDL_GetNumVideoDisplays reported " << nbdisplay << " !" << endl;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
+		return -1;
+	    }
+	    SDL_Rect rect, maxrect;
+	    int i, maxi=-1, max = -1;
+	    for (i=0 ; i<nbdisplay ; i++) {
+		if (SDL_GetDisplayBounds (i, &rect) != 0) continue;
+		if (rect.h*rect.w > max) {
+		    maxi = i;
+		    max = rect.h*rect.w;
+		    maxrect = rect;
+		}
+	    }
+	    if (maxi == -1) {
+		cerr << "could not get screen bounds with any SDL_GetDisplayBounds" << endl;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
+		return -1;
+	    }
+	    initial_w = rect.w;
+	    initial_h = rect.h;
+	    
+#else
+    	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
 	    if (p == NULL) {
 		cerr << "SDL_VideoInfo () failed : " << SDL_GetError() << endl ;
 		if (exitoninitfailure) { SDL_Quit (); exit (2); }
@@ -92,6 +170,7 @@ static timespec lastcall;
 	    }
 	    initial_w = p->current_w;
 	    initial_h = p->current_h;
+#endif
 	}
 	// screen = SDL_SetVideoMode(scr_width, scr_height, 16, SDL_OPENGL|SDL_SWSURFACE|SDL_RESIZABLE);
 
@@ -100,18 +179,51 @@ static timespec lastcall;
 	    double render_ratio = ((double)w) / h;
 
 	    if (screen_ratio > render_ratio) {
-		window_h = initial_h-32;
+		window_h = initial_h-128;
 		window_w = window_h * render_ratio;
 	    } else {
-		window_w = initial_w-32;
+		window_w = initial_w-128;
 		window_h = window_w / render_ratio;
 	    }
 	}
-//	window_w = initial_w-32;
-//	window_h = initial_h-32;
+//	window_w = initial_w-128;
+//	window_h = initial_h-128;
+#ifdef SDL2
+//SDL_Window *
+	Wscreen = SDL_CreateWindow("let-c app",
+                          SDL_WINDOWPOS_UNDEFINED,
+                          SDL_WINDOWPOS_UNDEFINED,
+                          window_w, window_h,
+                          // SDL_WINDOW_FULLSCREEN | 
+			  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+	if (Wscreen == NULL) {
+	    cerr << "Couldn't set " << window_w << "x" << window_h << " video mode : " << SDL_GetError() << endl;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
+	    return -1;
+	}
+	if (
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION,      3) ||
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION,      3) ||
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,       SDL_GL_CONTEXT_PROFILE_CORE) ||
+//            SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL,         1) ||
+            SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,               1)
+	) {
+	    cerr << "SDL_GL_SetAttribute Error: " << SDL_GetError() << endl;
+	}
 
+	glcontext = SDL_GL_CreateContext(Wscreen);
+
+	// JDJDJDJD are those necessary ?
+	SDL_GL_SetSwapInterval(1);
+	if (SDL_GL_MakeCurrent(Wscreen, glcontext) != 0)
+	    cerr << "could not set current gl context ?" << endl;
+//    if( !InitGLLoad()){
+//        cerr << "InitGLLoad Error: " << endl;
+//    }
+//    cerr << glGetString( GL_VERSION) << endl;
+#else
 	screen = SDL_SetVideoMode(window_w, window_h, 16, SDL_OPENGL|SDL_SWSURFACE);
-	// screen = SDL_SetVideoMode(initial_w-32, initial_h-32, 16, SDL_OPENGL|SDL_SWSURFACE);
+	// screen = SDL_SetVideoMode(initial_w-128, initial_h-128, 16, SDL_OPENGL|SDL_SWSURFACE);
 
 
 	if (screen == NULL) {
@@ -119,6 +231,7 @@ static timespec lastcall;
 	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
+#endif
 
 	h=window_h;
 	w=window_w;
@@ -145,6 +258,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, texturew, textureh, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawscreen);
 
 //	GLmutex = SDL_CreateMutex();
+	pthread_mutex_init (&GLmutex, NULL);
 
 	settle_timer ();
 
@@ -162,11 +276,38 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	texturew = w;
 	textureh = h;
 	if (SDL_Init ( SDL_INIT_VIDEO) < 0) {
+//	if (SDL_Init (SDL_INIT_EVERYTHING) < 0) {
 	    cerr << "SDL_Init (SDL_INIT_VIDEO) failed : " << SDL_GetError() << endl ;
 	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
-	{	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
+#ifdef SDL2
+	    int nbdisplay = SDL_GetNumVideoDisplays ();
+	    if (nbdisplay <= 0) {
+		cerr << "SDL_GetNumVideoDisplays reported " << nbdisplay << " !" << endl;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
+		return -1;
+	    }
+	    SDL_Rect rect, maxrect;
+	    int i, maxi=-1, max = -1;
+	    for (i=0 ; i<nbdisplay ; i++) {
+		if (SDL_GetDisplayBounds (i, &rect) != 0) continue;
+		if (rect.h*rect.w > max) {
+		    maxi = i;
+		    max = rect.h*rect.w;
+		    maxrect = rect;
+		}
+	    }
+	    if (maxi == -1) {
+		cerr << "could not get screen bounds with any SDL_GetDisplayBounds" << endl;
+		if (exitoninitfailure) { SDL_Quit (); exit (2); }
+		return -1;
+	    }
+	    initial_w = rect.w;
+	    initial_h = rect.h;
+	    
+#else
+    	const SDL_VideoInfo *p = SDL_GetVideoInfo ();	// let's gather the screen size
 	    if (p == NULL) {
 		cerr << "SDL_VideoInfo () failed : " << SDL_GetError() << endl ;
 		if (exitoninitfailure) { SDL_Quit (); exit (2); }
@@ -174,7 +315,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	    }
 	    initial_w = p->current_w;
 	    initial_h = p->current_h;
-	}
+#endif
 	// screen = SDL_SetVideoMode(scr_width, scr_height, 16, SDL_OPENGL|SDL_SWSURFACE|SDL_RESIZABLE);
 
 	{
@@ -182,17 +323,52 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	    double render_ratio = ((double)w) / h;
 
 	    if (screen_ratio > render_ratio) {
-		window_h = initial_h-32;
+		window_h = initial_h-128;
 		window_w = window_h * render_ratio;
 	    } else {
-		window_w = initial_w-32;
+		window_w = initial_w-128;
 		window_h = window_w / render_ratio;
 	    }
 	}
 
 
+#ifdef SDL2
+//SDL_Window *
+	Wscreen = SDL_CreateWindow("let-c app",
+                          SDL_WINDOWPOS_UNDEFINED,
+                          SDL_WINDOWPOS_UNDEFINED,
+                          window_w, window_h,
+                          // SDL_WINDOW_FULLSCREEN | 
+			  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+	if (Wscreen == NULL) {
+	    cerr << "Couldn't set " << window_w << "x" << window_h << " video mode : " << SDL_GetError() << endl;
+	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
+	    return -1;
+	}
+	if (
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION,      3) ||
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION,      3) ||
+//            SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,       SDL_GL_CONTEXT_PROFILE_CORE) ||
+//            SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL,         1) ||
+            SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,               1)
+	) {
+	    cerr << "SDL_GL_SetAttribute Error: " << SDL_GetError() << endl;
+	}
+	glcontext = SDL_GL_CreateContext(Wscreen);
+
+	// JDJDJDJD are those necessary ?
+	SDL_GL_SetSwapInterval(1);
+	if (SDL_GL_MakeCurrent(Wscreen, glcontext) != 0)
+	    cerr << "could not set current gl context ?" << endl;
+//    if( !InitGLLoad()){
+//        cerr << "InitGLLoad Error: " << endl;
+//    }
+//    cerr << glGetString( GL_VERSION) << endl;
+    
+
+#else
 	screen = SDL_SetVideoMode(window_w, window_h, 16, SDL_OPENGL|SDL_SWSURFACE);
-	// screen = SDL_SetVideoMode(initial_w-32, initial_h-32, 16, SDL_OPENGL|SDL_SWSURFACE);
+	// screen = SDL_SetVideoMode(initial_w-128, initial_h-128, 16, SDL_OPENGL|SDL_SWSURFACE);
 
 
 	if (screen == NULL) {
@@ -200,6 +376,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	    if (exitoninitfailure) { SDL_Quit (); exit (2); }
 	    return -1;
 	}
+#endif
 
 	glEnable(GL_LIGHTING);
 	glEnable (GL_TEXTURE_2D);
@@ -213,6 +390,7 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, texturew, textureh, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawscreen);
 
 //	GLmutex = SDL_CreateMutex();
+	pthread_mutex_init (&GLmutex, NULL);
 
 	settle_timer ();
 
@@ -221,7 +399,11 @@ cerr << "[" << w << "x" << h << "]" << endl;
     }
 
     void leavescreen (void) {
+#ifdef SDL2
+	if (Wscreen == NULL) return;
+#else
 	if (screen == NULL) return;
+#endif
 	stoptimer ();
 	time_t t = time (NULL);
 	while (time(NULL) - t < 2) {
@@ -230,9 +412,15 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	    }
 	}
 	pthread_mutex_destroy (&GLmutex);
+	SDL_GL_DeleteContext(glcontext);
 	SDL_Quit ();
+#ifdef SDL2
+	Wscreen = NULL;
+#else
 	screen = NULL;
+#endif
     }
+
 
     void uploadtexture (void) {
 	//glGenTextures (1, &texture);
@@ -250,13 +438,20 @@ cerr << "[" << w << "x" << h << "]" << endl;
 //	GLsizei vw, vh;                                      //!< the width and height of the viewport
 
     void renderflatty (void) {
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //	glEnable(GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
 //	glShadeModel(GL_SMOOTH);
 
+#ifdef SDL2
+	{   int w,h;
+	    SDL_GetWindowSize(Wscreen, &w, &h);
+	    glViewport (0,0, w, h);
+	    // glViewport (0,0, 482, 772);
+	}
+#else
 	glViewport (0,0, screen->w, screen->h);
+#endif
 
 	glMatrixMode ( GL_PROJECTION );
 	glPushMatrix();
@@ -315,16 +510,20 @@ glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glDisable(GL_BLEND);
 	glFinish();
+#ifdef SDL2
+	SDL_GL_SwapWindow (Wscreen);
+#else
 	SDL_GL_SwapBuffers();
+#endif
     }
 
 
-    map<SDLKey, int> keypressed;
+    map<KeyCode, int> keypressed;
     int nbkeypressed = 0;
     bool escapeout = true;	// does "escape"-key toggles quit
 
-    static void timerhandler (int sig, siginfo_t *si, void *uc) {
 
+    void timersofty (void) {
 	SDL_Event event;
 	while (SDL_PollEvent (&event)) {
 	    switch (event.type) {
@@ -345,13 +544,13 @@ cerr << "Ended via closing window" << endl;
 
 		case SDL_KEYDOWN:
 // cerr << "keysym = " << event.key.keysym.sym << endl;
-		    SDLKey keysym = event.key.keysym.sym;
+		    KeyCode keysym = event.key.keysym.sym;
 		    if (escapeout && (keysym == SDLK_ESCAPE)) {
 			leavescreen ();
 cerr << "Ended via Escape keystroke" << endl;
 			exit(0);
 		    }
-		    map<SDLKey, int>::iterator mi = keypressed.find(keysym);
+		    map<KeyCode, int>::iterator mi = keypressed.find(keysym);
 		    if (mi == keypressed.end())
 			keypressed[keysym] = 1;
 		    else
@@ -376,6 +575,10 @@ cerr << "Ended via Escape keystroke" << endl;
 	pthread_mutex_unlock (&GLmutex);
     }
 
+    static void timerhandler (int sig, siginfo_t *si, void *uc) {
+	timersofty ();
+    }
+
     void inline autoupdatetexture () {
 	if (!autorefresh) return;
 	needrefresh = 1;
@@ -397,9 +600,20 @@ cerr << "Ended via Escape keystroke" << endl;
 	autorefresh = false;
     }
 
+    void * start_thr_timer (void * V) {
+	pid_t pid = *(pid_t *)V;
+
+	while (true) {
+	    usleep (1000000/25);
+	    kill (pid, SIG);
+	}
+    }
+
     int settle_timer (void) {
-	struct sigevent sev;
+#ifdef USE_SIGTIMER
 	struct itimerspec its;
+	struct sigevent sev;
+#endif
 	sigset_t mask;
 	struct sigaction sa;
 
@@ -422,6 +636,7 @@ cerr << "Ended via Escape keystroke" << endl;
 	    return -1;
 	}
 
+#ifdef USE_SIGTIMER
 	/* Create the timer */
 	sev.sigev_notify = SIGEV_SIGNAL;
 	sev.sigev_signo = SIG;
@@ -443,6 +658,14 @@ cerr << "Ended via Escape keystroke" << endl;
 	    cerr << "settle_timer, error at timer_settime : " << strerror(e) << endl;
 	    return -1;
 	}
+#else
+	static pthread_t thr_timer;
+	pid_t pid = getpid();
+	if (pthread_create (&thr_timer, NULL, &start_thr_timer, &pid) != 0) {
+	    int e = errno;
+	    cerr << "pthread_create (thr_timer) failed : " << strerror (e) << endl;
+	}
+#endif
 
 	/* unblocking signales */
 	if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1) {
@@ -611,20 +834,30 @@ cerr << "Ended via Escape keystroke" << endl;
 	return (int)(((long int)random () * max)/RAND_MAX);
     }
 
+    GlobalInstance::GlobalInstance () {
+	cerr << "Start !" << endl;
+    }
+
+    GlobalInstance::~GlobalInstance () {
+	cerr << "End !" << endl;
+	leavescreen ();
+    }
+
 } // namespace let_c
 
-using namespace let_c;
+//	using namespace let_c;
+//	
+//	extern "C" int __real_main (int nb, char ** cmde);
+//	
+//	extern "C" int __wrap_main (int nb, char ** cmde) {
+//	
+//	
+//	cerr << "Start !" << endl;
+//	    int r = __real_main (nb, cmde);
+//	cerr << "End !" << endl;
+//	
+//	    leavescreen ();
+//	
+//	    return r;
+//	}
 
-extern "C" int __real_main (int nb, char ** cmde);
-
-extern "C" int __wrap_main (int nb, char ** cmde) {
-
-
-cerr << "Start !" << endl;
-    int r = __real_main (nb, cmde);
-cerr << "End !" << endl;
-
-    leavescreen ();
-
-    return r;
-}

@@ -1,0 +1,18 @@
+
+vimtest: executable
+	./executable
+
+executable: source.o let-c.o
+	g++  let-c.o source.o @LDFLAGS@ @SDL_LDFLAGS@ @GL_LDFLAGS@ -lpthread -lm @LIBRT_LDFLAGS@ -o ./executable
+	## g++  let-c.o source.o @SDL_LDFLAGS@ @GL_LDFLAGS@ -lpthread -lm @LIBRT_LDFLAGS@ -Wl,--wrap,main -o ./executable
+
+source.o: source.cpp
+	g++ -Wall @CXXFLAGS@ @GL_CFLAGS@ @SDL_CFLAGS@ -c source.cpp
+
+let-c.o: let-c.h let-c.cpp
+	g++ -Wall @CXXFLAGS@ @GL_CFLAGS@ @SDL_CFLAGS@ -c let-c.cpp
+
+clean:
+	rm -f let-c.o  source.o
+	rm -f ./executable
+

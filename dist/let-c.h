@@ -106,6 +106,16 @@ CFACIL_H_SCOPE    Vector4 GLRGBA_ORANGE      ;
 
     int Random (int max);
 
+    class GlobalInstance {
+	public:
+	    GlobalInstance (void);
+	    ~GlobalInstance ();
+    };
+
+#ifdef CFACIL_STATICINSTANCE
+    static GlobalInstance globalinstance;
+#endif    
+
 } // namespace let_c
 
 using namespace let_c;

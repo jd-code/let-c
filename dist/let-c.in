@@ -10,7 +10,7 @@ editvianano () {
 }
 
 editviavim () {
-    exec vim -c 'set makeprg=/tmp/bok/bin/build-4-nano-let-c\ -vim\ %' -c 'map <F12> :wa<CR>:make<CR>' -c 'map <F9> :cp<CR>' -c 'map <F10> :cn<CR>' "${@}"
+    exec vim -c 'set makeprg=@LETCBINDIR@/build-4-nano-let-c\ -vim\ %' -c 'map <F12> :wa<CR>:make<CR>' -c 'map <F9> :cp<CR>' -c 'map <F10> :cn<CR>' "${@}"
 }
 
 if [ "E${1}E" = "E-nanoE" ]

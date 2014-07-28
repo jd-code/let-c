@@ -33,19 +33,21 @@ let-c: let-c.in
 
 
 func3doldies: func3doldies.o
-	g++  let-c.o func3doldies.o `pkg-config --libs sdl` `pkg-config --libs gl` -o func3doldies -lpthread -lm -lrt -Wl,--wrap,main
+	g++  let-c.o func3doldies.o $(LDFLAGS) $(SDL_LDFLAGS) $(GL_LDFLAGS) -o func3doldies -lpthread -lm $(LIBRT_LDFLAGS)
+	## g++  let-c.o func3doldies.o $(SDL_LDFLAGS) `pkg-config --libs gl` -o func3doldies -lpthread -lm $(LIBRT_LDFLAGS) -Wl,--wrap,main
 
 func3doldies.o: func3doldies.cpp
-	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c  func3doldies.cpp
+	g++ -Wall $(CXXFLAGS) $(SDL_CFLAGS) $(GL_CFLAGS) -c  func3doldies.cpp
 
 executable: let-c.o simplepixels.o
-	g++  let-c.o simplepixels.o `pkg-config --libs sdl` `pkg-config --libs gl` -o executable -lpthread -lm -lrt -Wl,--wrap,main 
+	g++ -g let-c.o simplepixels.o $(LDFLAGS) $(SDL_LDFLAGS) $(GL_LDFLAGS) -o executable -lpthread -lm $(LIBRT_LDFLAGS)
+	## g++ -g let-c.o simplepixels.o $(SDL_LDFLAGS) `pkg-config --libs gl` -o executable -lpthread -lm $(LIBRT_LDFLAGS) -Wl,--wrap,main 
 
 simplepixels.o: let-c.h simplepixels.cpp
-	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c simplepixels.cpp 
+	g++ -g -Wall $(CXXFLAGS) $(SDL_CFLAGS) $(GL_CFLAGS) -c simplepixels.cpp 
 
 let-c.o: let-c.h let-c.cpp
-	g++ -Wall `pkg-config --cflags sdl` `pkg-config --cflags gl` -c let-c.cpp
+	g++ -g -Wall $(CXXFLAGS) $(SDL_CFLAGS) $(GL_CFLAGS) -c let-c.cpp
 
 clean-local:
 	rm -f let-c.o  simplepixels.o

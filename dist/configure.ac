@@ -63,6 +63,51 @@ CFLAGS="$CFLAGS -O2 -Wall -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wmiss
 CXXFLAGS="$CXXFLAGS -O2 -Wall -Woverloaded-virtual -Wcast-qual -Wwrite-strings -Wredundant-decls"
 
 
+dnl explain we want rather c++
+AC_LANG_CPLUSPLUS
+
+dnl check for matcalc template -------------------------------------------------------
+AC_MSG_CHECKING(for matcalc template)
+have_matcalc=no
+SAVECXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$SAVECXXFLAGS $INCPATH"
+AC_TRY_COMPILE([
+#include <matcalc/matcalc.h>
+],[
+],[
+have_matcalc=yes
+])
+if test x$have_matcalc = xno; then
+    for P_INC in /usr /usr/local /opt/local "${prefix}"
+    do
+	if test x$have_matcalc = xno; then
+	    /bin/echo -n "  ($P_INC :"
+	    CXXFLAGS="$SAVECXXFLAGS $INCPATH -I$P_INC/include"
+	    AC_TRY_COMPILE([
+#include <matcalc/matcalc.h>
+	    ],[
+	    ],[
+	    have_matcalc=yes
+	    ])
+	    if test x$have_matcalc = xyes; then
+		INCPATH="$INCPATH -I$P_INC/include"
+		/bin/echo -n " yes.)"
+	    else
+		/bin/echo -n " no.)"
+	    fi
+	fi
+    done
+    /bin/echo -n " : "
+fi
+CXXFLAGS="$SAVECXXFLAGS"
+AC_MSG_RESULT($have_matcalc)
+if test x$have_matcalc = xyes; then
+    :
+else
+    AC_MSG_ERROR(Unable to find matcalc headers)
+fi
+
+dnl end of check for matcalc template ------------------------------------------------
 dnl let's find where the nano editor stands ...
 AC_MSG_CHECKING(for nano editor)
 NANO_EDITOR_BIN=""
@@ -83,19 +128,57 @@ else
 fi
 AC_SUBST(AC_NANO_EDITOR_BIN,[$NANO_EDITOR_BIN])
 
+dnl check for sdl to be used
+use_sdl="sdl1"
+AC_MSG_CHECKING([for which libsdl to use])
+AC_ARG_ENABLE(sdl2,
+[  --enable-sld2           build with libSDL2],
+    use_sdl="sdl2")
+AC_MSG_RESULT($use_sdl)
 
-dnl dnl check for mac-osX file scheme
-dnl case "$target" in
-dnl     *-apple-darwin*)
-dnl 	AC_DEFINE(OSXFILESCHEME, 1, [a macosX file scheme flavour is used])
-dnl 	AC_MSG_RESULT([a macosX file scheme flavour is used])
-dnl 	;;
-dnl     *)
-dnl 	AC_DEFINE(OSXFILESCHEME, 0, [a regular unix file scheme flavour is used])
-dnl 	AC_MSG_RESULT([a regular unix file scheme flavour is used])
-dnl 	;;
-dnl esac
+if test "$use_sdl" = "sdl2" ; then
+SDL_CFLAGS="`pkg-config --cflags sdl2`"
+SDL_LDFLAGS="`pkg-config --libs sdl2`"
+else
+SDL_CFLAGS="`pkg-config --cflags sdl`"
+SDL_LDFLAGS="`pkg-config --libs sdl`"
+fi
+AC_SUBST(SDL_CFLAGS, [$SDL_CFLAGS])
+AC_SUBST(SDL_LDFLAGS, [$SDL_LDFLAGS])
 
+
+dnl where to find and compile with GL
+GL_LDFLAGS="`pkg-config --libs gl`"
+GL_CFLAGS="`pkg-config --cflags gl`"
+case "$target" in
+    *-apple-darwin*)
+	GL_LDFLAGS="-Wl,-framework,OpenGL"
+	GL_CFLAGS=""
+	;;
+    *)
+	:
+	;;
+esac
+AC_SUBST(GL_CFLAGS, [$GL_CFLAGS])
+AC_SUBST(GL_LDFLAGS, [$GL_LDFLAGS])
+
+
+
+dnl check for mac-osX file scheme
+LIBRT_LDFLAGS=""
+case "$target" in
+    *-apple-darwin*)
+	AC_DEFINE(OSXFILESCHEME, 1, [a macosX file scheme flavour is used])
+	AC_MSG_RESULT([a macosX file scheme flavour is used])
+	LIBRT_LDFLAGS=""
+	;;
+    *)
+	AC_DEFINE(OSXFILESCHEME, 0, [a regular unix file scheme flavour is used])
+	AC_MSG_RESULT([a regular unix file scheme flavour is used])
+	LIBRT_LDFLAGS="-lrt"
+	;;
+esac
+AC_SUBST(LIBRT_LDFLAGS, [$LIBRT_LDFLAGS])
 
 dnl concatenation of include dirs
 CFLAGS="$CFLAGS $INCPATH"
@@ -107,6 +190,7 @@ dnl DEFINE_UNQUOTED([DATA_PATH], ["$pkgdatadir"])
 dnl Finally create all the generated files
 AC_OUTPUT([
 	Makefile
+	Makefile.template
 ])
 
 
