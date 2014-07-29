@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TMPFILE=`mktemp`
+TMPFILE=`mktemp /tmp/LetC-log.XXXXXXXXXX`
 TMPDIR=`mktemp -d /tmp/LetC.XXXXXXXXXX`
 ORIGFILE="$1"
 MODEVIM="NO"
