@@ -660,7 +660,7 @@ cerr << "Ended via Escape keystroke" << endl;
 	}
 #else
 	static pthread_t thr_timer;
-	pid_t pid = getpid();
+	static pid_t pid = getpid();
 	if (pthread_create (&thr_timer, NULL, &start_thr_timer, &pid) != 0) {
 	    int e = errno;
 	    cerr << "pthread_create (thr_timer) failed : " << strerror (e) << endl;
