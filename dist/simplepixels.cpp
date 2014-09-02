@@ -19,7 +19,6 @@ int main (int nb, char ** cmde) {
 	    stoprefresh();
 	    for (int x=0 ; x<W ; x++) {
 		for (int y=0 ; y<H ; y++) {
-
 		    putpixel (x, y,  255.0*((x+i)/(double)W),  255.0*((y+i*2)/(double)H),  255.0*((x-i)/(double)W)  );
 	       }
 	    }

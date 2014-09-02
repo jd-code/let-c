@@ -412,11 +412,12 @@ cerr << "[" << w << "x" << h << "]" << endl;
 	    }
 	}
 	pthread_mutex_destroy (&GLmutex);
+#ifdef SDL2
 	SDL_GL_DeleteContext(glcontext);
 	SDL_Quit ();
-#ifdef SDL2
 	Wscreen = NULL;
 #else
+	SDL_Quit ();
 	screen = NULL;
 #endif
     }
@@ -607,6 +608,7 @@ cerr << "Ended via Escape keystroke" << endl;
 	    usleep (1000000/25);
 	    kill (pid, SIG);
 	}
+	return NULL;
     }
 
     int settle_timer (void) {
