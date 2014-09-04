@@ -5,12 +5,12 @@ vimtest: executable func3doldies
 
 
 letcdir = $(datadir)/let-c
-letc_DATA = let-c.cpp let-c.h Makefile.template 
+letc_DATA = let-c.cpp let-c.h Makefile.template let-C.gedit
 
 dist_man_MANS = let-c.1 build-4-nano-let-c.1
 
 dist_bin_SCRIPTS = build-4-nano-let-c let-c
-CLEANFILES = $(dist_bin_SCRIPTS) $(dist_man_MANS)
+CLEANFILES = $(dist_bin_SCRIPTS) $(dist_man_MANS) let-C.gedit
 
 do_subst = sed	-e 's,[@]LETCDATADIR[@],$(letcdir),g'			\
 		-e 's,[@]LETCBINDIR[@],$(bindir),g'			\
@@ -31,6 +31,9 @@ let-c: let-c.in
 	$(do_subst) < let-c.in > let-c
 	chmod +x let-c
 
+let-C.gedit: let-C.gedit.in
+	$(do_subst) < let-C.gedit.in > let-C.gedit
+	chmod a+rx let-C.gedit.in
 
 func3doldies: func3doldies.o
 	g++  let-c.o func3doldies.o $(LDFLAGS) $(SDL_LDFLAGS) $(GL_LDFLAGS) -o func3doldies -lpthread -lm $(LIBRT_LDFLAGS)

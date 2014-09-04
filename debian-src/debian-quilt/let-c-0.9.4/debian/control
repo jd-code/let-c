@@ -1,0 +1,17 @@
+Source: let-c
+Section: devel
+Priority: extra
+Maintainer: Jean-Daniel Pauget <pauget@nekodune.com>
+Build-Depends: debhelper (>= 7), nano, matcalc0-dev, libsdl1.2-dev, pkg-config
+Standards-Version: 3.8.4
+Homepage: http://let-C.nekodune.net/
+
+Package: let-c
+Architecture: any
+Depends: ${misc:Depends}, nano (>=2.2.6-1letc1), matcalc0-dev, libsdl1.2-dev, g++
+Description: crafted scripts for Fast simple C/C++ development
+ Let-C is aimed at learning the very bases of programing with
+ a straighforward environment and helper-library.
+ Tipically a single-file source is compiled and executed in one
+ keypress with simple primitives such as line of plot available
+ right away ...

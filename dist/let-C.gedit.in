@@ -1,0 +1,10 @@
+#!/bin/sh
+# [Gedit Tool]
+# Name=Let-C
+# Shortcut=F12
+# Applicability=all
+# Output=output-panel
+# Input=document
+# Save-files=document
+
+@LETCBINDIR@/build-4-nano-let-c -vim $GEDIT_CURRENT_DOCUMENT_NAME

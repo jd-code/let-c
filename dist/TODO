@@ -6,6 +6,12 @@ todo
 	create tool profile
 	patch build-4 for (xterm|gnome-terminal)-launch
 
+	lucid /usr/share/gedit-2/plugins/externaltools/tools
+	squeeze /usr/share/gedit-2/plugins/externaltools/tools
+
+	/usr/share/gedit/plugins/externaltools/tools
+
+
 done
     mousek
     getmouse
