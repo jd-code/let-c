@@ -14,7 +14,11 @@ int main (void) {
 
 double t = 0.0;
 while (mousek() == 0) {
-clear();
+
+//clear();
+    setdrawmode (TRANSPARENT);
+    settransparency (12);
+
 
     int miny[W], maxy[W];
     for (int i=0 ; i<W ; i++) {

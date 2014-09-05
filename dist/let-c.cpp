@@ -72,7 +72,14 @@ static timespec lastcall;
 	 int	 texturew = -1,
 		 textureh = -1;
 
+    DrawMode drawmode;
     Uint32  currentwpixel = 0xffffffff;
+    Uint32  currenttransppixel = 0xffffffff;
+    Uint16  cur_r = 255;
+    Uint16  cur_g = 255;
+    Uint16  cur_b = 255;
+    Uint16  TranspMask = 256;
+    Uint16  ComplTranspMask = 0;
 
     bool      autorefresh = true;
   pthread_mutex_t GLmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -692,40 +699,85 @@ cerr << "Ended via Escape keystroke" << endl;
 	sigprocmask (SIG_UNBLOCK, &mask, NULL);
     }
 
+
+    void setdrawmode (DrawMode d) {
+	drawmode = d;
+    }
+
+    void computecurrentwpixel () {
+	currentwpixel = (cur_r & 0xff) | ((cur_b & 0xff)<<16) | ((cur_g&0xff)<<8) | (0xff<<24);
+	currenttransppixel =	  (((cur_r & 0xff) * TranspMask) >> 8)
+			      |  ((((cur_b & 0xff) * TranspMask) >> 8) <<16)
+			      |  ((((cur_g & 0xff) * TranspMask) >> 8) <<8)
+			      |  (0xff                                 <<24);
+    }
+
     void setcolor (int r, int g, int b) {
 	// currentwpixel = ((r & 0xff)<<24) | ((g & 0xff)<<16) | ((b&0xff)<<8) | 0xff;
-	currentwpixel = (r & 0xff) | ((b & 0xff)<<16) | ((g&0xff)<<8) | (0xff<<24);
+	cur_r = r;
+	cur_g = g;
+	cur_b = b;
+    
+	computecurrentwpixel ();
+    }
+
+    void settransparency (int t) {
+	if (t<0) 
+	    t = 0;
+	else if (t>256)
+	    t = 256;
+
+	TranspMask = t;
+	ComplTranspMask = 256-t;
+	computecurrentwpixel ();
     }
 
     void fputpixel (int x, int y, int r, int g, int b) {
 	uint8_t *p = rawscreen + ((x+texturew*y) << 2);
-	*p++ = r;
-	*p++ = g;
-	*p++ = b;
-	*p++ = 255;
+	switch (drawmode) {
+	    case OPAQUE:
+		*p++ = r;
+		*p++ = g;
+		*p++ = b;
+		*p++ = 255;
+		break;
+	    case TRANSPARENT:
+		*p = ((r * TranspMask) >> 8) + ((*p * ComplTranspMask) >> 8); p++;
+		*p = ((g * TranspMask) >> 8) + ((*p * ComplTranspMask) >> 8); p++;
+		*p = ((b * TranspMask) >> 8) + ((*p * ComplTranspMask) >> 8); p++;
+		*p++ = 255;
+		break;
+	}
 	autoupdatetexture ();
     }
 
     void fputpixel (int x, int y) {
 	uint32_t *p = (uint32_t *) (rawscreen + ((x+texturew*y) << 2));
-	*p = currentwpixel;
+	switch (drawmode) {
+	    case OPAQUE:
+		*p = currentwpixel;
+		break;
+	    case TRANSPARENT:
+		{   uint32_t s = currenttransppixel;
+		    uint8_t *pp = (uint8_t*) p;
+		    s += ((*pp * ComplTranspMask) >>8)		; pp++;
+		    s += ((*pp * ComplTranspMask) >>8)<<8	; pp++;
+		    s += ((*pp * ComplTranspMask) >>8)<<16	; pp++;
+		    *p = s;
+		}
+		break;
+	}
 	autoupdatetexture ();
     }
 
     void putpixel (int x, int y, int r, int g, int b) {
 	if ((x<0) || (y<0) || (x>=texturew) || (y>=textureh)) return;
-	uint8_t *p = rawscreen + ((x+texturew*y) << 2);
-	*p++ = r;
-	*p++ = g;
-	*p++ = b;
-	*p++ = 255;
-	autoupdatetexture ();
+	fputpixel (x,y,r,g,b);
     }
 
     void putpixel (int x, int y) {
 	if ((x<0) || (y<0) || (x>=texturew) || (y>=textureh)) return;
-	uint32_t *p = (uint32_t *) (rawscreen + ((x+texturew*y) << 2));
-	*p = currentwpixel;
+	fputpixel (x,y);
 	autoupdatetexture ();
     }
 
@@ -736,42 +788,86 @@ cerr << "Ended via Escape keystroke" << endl;
 	autoupdatetexture ();
     }
 
-    void rhline (int x1, int y1, int x2, int y2, Uint32 pixel) {
-	if ((y1<0) || (y1>=textureh)) return;
-	if (x1 > x2) {
-	    rhline (x2, y2, x1, y1, pixel);
-	    return;
+//	    void rhline (int x1, int y1, int x2, int y2, Uint32 pixel) {
+//		if ((y1<0) || (y1>=textureh)) return;
+//		if (x1 > x2) {
+//		    rhline (x2, y2, x1, y1, pixel);
+//		    return;
+//		}
+//		if (x2 < 0) return;
+//		if (x1 >= texturew) return;
+//		if (x1 < 0) x1 = 0;
+//		if (x2 >= texturew) x2 = texturew;
+//		Uint32 *p = (Uint32*)(rawscreen + ((x1+texturew*y1) << 2));
+//		for (; x1<x2 ; x1++)
+//		    *p++ = pixel;
+//		autoupdatetexture ();
+//	    }
+//	
+//	    void rvline (int x1, int y1, int x2, int y2, Uint32 pixel) {
+//		if ((x1 < 0) || (x1 >= texturew)) return;
+//		if (y1 > y2) {
+//		    rvline (x2, y2, x1, y1, pixel);
+//		    return;
+//		}
+//		if (y2 < 0) return;
+//		if (y1 >= textureh) return;
+//		if (y1 < 0) y1 = 0;
+//		if (y2 >= textureh) y2 = textureh-1;
+//		Uint32 *p = (Uint32*)(rawscreen + ((x1+texturew*y1) << 2));
+//		for (; y1<y2 ; y1++) {
+//	//	    if ((y1>=0) && (y1<textureh))
+//			*p = pixel;
+//		    p += 640;
+//		}
+//		autoupdatetexture ();
+//	    }
+
+    void rectangle (int x0, int y0, int x1, int y1) {
+	if ((x0 < 0) && (x1 < 0)) return;
+	if ((y0 < 0) && (y1 < 0)) return;
+	if ((x0 >= texturew) && (x1 >= texturew)) return;
+	if ((y0 >= textureh) && (y1 >= textureh)) return;
+
+	if (x0>x1) { int t=x0; x0=x1; x1=t; }
+	if (y0>y1) { int t=y0; y0=y1; y1=t; }
+
+	if (x0<0) x0=0;
+	if (x0>=texturew) return;
+	if (x1>=texturew) x1=texturew-1;
+	if (y0<0) y0=0;
+	if (y0>=textureh) return;
+	if (y1>=textureh) y1=textureh-1;
+
+	uint32_t *p;
+	switch (drawmode) {
+	    case OPAQUE:
+		for (int y=y0 ; y<=y1 ; y++) {
+//cerr << "y=" << y << endl;
+		    p = (uint32_t *) (rawscreen + ((x0+texturew*y) << 2));
+		    for (int i=x0 ; i<=x1 ; i++)
+			*p++ = currentwpixel;
+		}
+		break;
+	    case TRANSPARENT:
+		for (int y=y0 ; y<=y1 ; y++) {
+		    p = (uint32_t *) (rawscreen + ((x0+texturew*y) << 2));
+		    for (int i=x0 ; i<=x1 ; i++)
+		    {   uint32_t s = currenttransppixel;
+			uint8_t *pp = (uint8_t*) p;
+			s += ((*pp * ComplTranspMask) >>8)		; pp++;
+			s += ((*pp * ComplTranspMask) >>8)<<8	; pp++;
+			s += ((*pp * ComplTranspMask) >>8)<<16	; pp++;
+			*p++ = s;
+		    }
+		}
+		break;
 	}
-	if (x2 < 0) return;
-	if (x1 >= texturew) return;
-	if (x1 < 0) x1 = 0;
-	if (x2 >= texturew) x2 = texturew;
-	Uint32 *p = (Uint32*)(rawscreen + ((x1+texturew*y1) << 2));
-	for (; x1<x2 ; x1++)
-	    *p++ = pixel;
 	autoupdatetexture ();
+	
     }
 
-    void rvline (int x1, int y1, int x2, int y2, Uint32 pixel) {
-	if ((x1 < 0) || (x1 >= texturew)) return;
-	if (y1 > y2) {
-	    rvline (x2, y2, x1, y1, pixel);
-	    return;
-	}
-	if (y2 < 0) return;
-	if (y1 >= textureh) return;
-	if (y1 < 0) y1 = 0;
-	if (y2 >= textureh) y2 = textureh-1;
-	Uint32 *p = (Uint32*)(rawscreen + ((x1+texturew*y1) << 2));
-	for (; y1<y2 ; y1++) {
-//	    if ((y1>=0) && (y1<textureh))
-		*p = pixel;
-	    p += 640;
-	}
-	autoupdatetexture ();
-    }
-
-    void line(int x0, int y0, int x1, int y1) {
+    void line (int x0, int y0, int x1, int y1) {
 	if ((x0 < 0) && (x1 < 0)) return;
 	if ((y0 < 0) && (y1 < 0)) return;
 	if ((x0 >= texturew) && (x1 >= texturew)) return;
