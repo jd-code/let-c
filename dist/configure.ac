@@ -43,8 +43,8 @@ dnl the magic of additionnal local m4 ?
 AC_CONFIG_MACRO_DIR([m4])
 
 
-dnldnl dnl autoheader
-dnldnl AM_CONFIG_HEADER(config.h)
+dnl dnl dnl autoheader
+dnl dnl AM_CONFIG_HEADER(config.h)
 
 dnl Check for tools
 
@@ -132,7 +132,7 @@ dnl check for sdl to be used
 use_sdl="sdl1"
 AC_MSG_CHECKING([for which libsdl to use])
 AC_ARG_ENABLE(sdl2,
-[  --enable-sld2           build with libSDL2],
+[  --enable-sdl2           build with libSDL2],
     use_sdl="sdl2")
 AC_MSG_RESULT($use_sdl)
 
