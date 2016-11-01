@@ -45,6 +45,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 dnl dnl dnl autoheader
 dnl dnl AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl Check for tools
 
